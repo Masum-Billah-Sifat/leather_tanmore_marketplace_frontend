@@ -12,7 +12,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'My Ecommerce App',
+  title: 'TANMORE',
   description: 'Modern ecommerce site built with Next.js',
 }
 
