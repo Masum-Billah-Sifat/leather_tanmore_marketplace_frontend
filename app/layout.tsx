@@ -4,6 +4,7 @@ import { Poppins } from 'next/font/google'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import type { Metadata } from 'next'
+import Providers from './providers'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -16,17 +17,15 @@ export const metadata: Metadata = {
   description: 'Modern ecommerce site built with Next.js',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={poppins.className}>
-        <Navbar />
-        <main className="min-h-screen px-6 py-8">{children}</main>
-        <Footer />
+        <Providers>
+          <Navbar />
+          <main className="min-h-screen px-6 py-8">{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   )
