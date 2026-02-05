@@ -8,6 +8,7 @@ import axios from "@/utils/axios";
 import { handleApiError } from "@/utils/handleApiError";
 import { buildClientHeaders } from "@/utils/authHeader";
 import BecomeSellerModal from "@/components/BecomeSellerModal";
+import { useCartStore } from "@/stores/useCartStore";
 
 export default function Navbar() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function Navbar() {
   } = useAuthStore();
 
   const [sellerModalOpen, setSellerModalOpen] = useState(false);
+  const cart = useCartStore();
 
   const handleLoginSuccess = async (credentialResponse: any) => {
     try {
@@ -30,7 +32,7 @@ export default function Navbar() {
       const res = await axios.post(
         "/api/auth/google",
         { id_token: idToken },
-        { headers: buildClientHeaders() }
+        { headers: buildClientHeaders() },
       );
 
       const { access_token, refresh_token, user } = res.data.data;
@@ -56,12 +58,8 @@ export default function Navbar() {
       setAccessToken(access_token);
       mergeUser({ mode });
 
-      // ✅ Redirect after switch
-      if (mode === "seller") {
-        router.push("/seller/dashboard");
-      } else {
-        router.push("/"); // or "/customer" if you have one
-      }
+      if (mode === "seller") router.push("/seller/dashboard");
+      else router.push("/");
     } catch (error) {
       handleApiError(error);
     }
@@ -70,30 +68,59 @@ export default function Navbar() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await axios.post("/api/auth/logout", {}, { headers: buildClientHeaders() });
+      await axios.post(
+        "/api/auth/logout",
+        {},
+        { headers: buildClientHeaders() },
+      );
     } catch (error) {
       console.warn("Logout API failed:", error);
     } finally {
       clearSession();
+      cart.clearLocal();
+
       setIsLoggingOut(false);
-      router.push("/"); // optional
+      router.push("/");
     }
   };
 
   const openSellerModal = () => setSellerModalOpen(true);
 
+  const handleCartClick = () => {
+    if (!user) {
+      alert("Please login first to view your cart.");
+      return;
+    }
+    router.push("/cart");
+  };
+
   return (
     <header className="w-full border-b bg-white shadow-sm">
       <div className="mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-800">TANMORE</h1>
+        <button
+          onClick={() => router.push("/")}
+          className="text-2xl font-semibold text-gray-800"
+        >
+          TANMORE
+        </button>
 
-        <nav className="space-x-6 text-gray-600 flex items-center">
+        <nav className="flex items-center gap-6 text-gray-600">
+          {/* ✅ Always visible cart button */}
+          <button
+            onClick={handleCartClick}
+            className="text-sm font-medium text-gray-800 hover:underline"
+          >
+            Cart
+          </button>
+
           {!hydrated ? (
             <span className="text-sm text-gray-400">Loading...</span>
           ) : user ? (
             <>
               <span className="text-sm text-gray-500">{user.email}</span>
-              <span className="text-sm text-gray-500 capitalize">{user.mode}</span>
+              <span className="text-sm text-gray-500 capitalize">
+                {user.mode}
+              </span>
 
               {user.is_seller_profile_approved ? (
                 <button
@@ -113,7 +140,7 @@ export default function Navbar() {
 
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-500 hover:underline ml-4"
+                className="text-sm text-red-500 hover:underline"
               >
                 Logout
               </button>
@@ -126,7 +153,11 @@ export default function Navbar() {
               >
                 Become a Seller
               </button>
-              <GoogleLogin onSuccess={handleLoginSuccess} onError={() => alert("Login Error")} />
+
+              <GoogleLogin
+                onSuccess={handleLoginSuccess}
+                onError={() => alert("Login Error")}
+              />
             </>
           )}
         </nav>
