@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CheckoutDetails, ShippingAddress } from "./types";
+import type { CheckoutDetails } from "./types";
 import { addShippingAddress, editShippingAddress } from "./api";
 import { handleApiError } from "@/utils/handleApiError";
 import ShippingAddressForm, { ShippingFormMode, ShippingFormValues } from "./ShippingAddressForm";
@@ -57,7 +57,6 @@ export default function ShippingAddressSection({
         zone_id: Number(vals.zone_id),
         area_id: Number(vals.area_id),
         payment_method: vals.payment_method,
-        // latitude/longitude intentionally omitted
       };
       await addShippingAddress(sessionId, body);
       await onChanged();
@@ -73,9 +72,7 @@ export default function ShippingAddressSection({
 
     setBusy(true);
     try {
-      // send only changed keys (PATCH-like semantics via PUT)
       const patch: Record<string, any> = {};
-
       const base = initialValues;
       if (!base) return;
 
@@ -87,12 +84,16 @@ export default function ShippingAddressSection({
       setIfChanged("recipient_name", vals.recipient_name.trim());
       setIfChanged("recipient_phone", vals.recipient_phone.trim());
 
-      // Optional strings:
-      // For now: if empty, we OMIT (so user can’t “clear” them). Keeps backend safe.
-      if (vals.recipient_email.trim() && vals.recipient_email.trim() !== (base.recipient_email ?? "")) {
+      if (
+        vals.recipient_email.trim() &&
+        vals.recipient_email.trim() !== (base.recipient_email ?? "")
+      ) {
         patch.recipient_email = vals.recipient_email.trim();
       }
-      if (vals.delivery_note.trim() && vals.delivery_note.trim() !== (base.delivery_note ?? "")) {
+      if (
+        vals.delivery_note.trim() &&
+        vals.delivery_note.trim() !== (base.delivery_note ?? "")
+      ) {
         patch.delivery_note = vals.delivery_note.trim();
       }
       setIfChanged("address_line", vals.address_line.trim());
@@ -102,7 +103,6 @@ export default function ShippingAddressSection({
       setIfChanged("area_id", Number(vals.area_id));
       setIfChanged("payment_method", vals.payment_method);
 
-      // If nothing changed, just exit edit mode
       if (Object.keys(patch).length === 0) {
         setEditMode(false);
         return;
@@ -119,7 +119,11 @@ export default function ShippingAddressSection({
   };
 
   if (!details) {
-    return <div className="text-sm text-gray-600">Load checkout details to manage shipping.</div>;
+    return (
+      <div className="rounded-2xl border border-black/10 bg-white p-4 text-sm text-[rgb(var(--muted))]">
+        Load checkout details to manage shipping.
+      </div>
+    );
   }
 
   if (!hasShipping) {
@@ -134,52 +138,68 @@ export default function ShippingAddressSection({
   }
 
   if (!shipping) {
-    return <div className="text-sm text-gray-600">Shipping flag is true, but shipping object is missing.</div>;
+    return (
+      <div className="rounded-2xl border border-black/10 bg-white p-4 text-sm text-[rgb(var(--muted))]">
+        Shipping flag is true, but shipping object is missing.
+      </div>
+    );
+  }
+
+  if (mode === "edit") {
+    return (
+      <ShippingAddressForm
+        mode="edit"
+        disabled={loading || busy}
+        initialValues={initialValues}
+        onCancel={() => setEditMode(false)}
+        onSubmit={submitEdit}
+      />
+    );
   }
 
   return (
-    <div className="space-y-3">
-      {!editMode ? (
-        <div className="rounded-2xl border bg-white p-4">
-          <div className="flex items-start justify-between gap-4">
+    <div className="rounded-3xl border border-black/10 bg-white p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="font-display text-base font-semibold text-[rgb(var(--text))]">
+            Saved shipping address
+          </div>
+          <div className="mt-3 space-y-1 text-sm text-[rgb(var(--text))]">
             <div>
-              <div className="text-sm font-semibold text-gray-900">Shipping address</div>
-              <div className="mt-2 text-sm text-gray-700">
-                <div><span className="text-gray-500">Name:</span> {shipping.recipient_name}</div>
-                <div><span className="text-gray-500">Phone:</span> {shipping.recipient_phone}</div>
-                {shipping.recipient_email ? (
-                  <div><span className="text-gray-500">Email:</span> {shipping.recipient_email}</div>
-                ) : null}
-                <div className="mt-2">
-                  <span className="text-gray-500">Address:</span> {shipping.address_line}
-                </div>
-                {shipping.delivery_note ? (
-                  <div><span className="text-gray-500">Note:</span> {shipping.delivery_note}</div>
-                ) : null}
-                <div className="mt-2 text-xs text-gray-600">
-                  city_id={shipping.city_id} • zone_id={shipping.zone_id} • area_id={shipping.area_id}
-                </div>
-              </div>
+              <span className="text-[rgb(var(--muted))]">Name:</span>{" "}
+              <span className="font-semibold">{shipping.recipient_name}</span>
             </div>
-
-            <button
-              onClick={() => setEditMode(true)}
-              disabled={loading || busy}
-              className="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:opacity-40"
-            >
-              Edit
-            </button>
+            <div>
+              <span className="text-[rgb(var(--muted))]">Phone:</span>{" "}
+              <span className="font-semibold">{shipping.recipient_phone}</span>
+            </div>
+            {shipping.recipient_email ? (
+              <div>
+                <span className="text-[rgb(var(--muted))]">Email:</span>{" "}
+                {shipping.recipient_email}
+              </div>
+            ) : null}
+            <div className="pt-2">
+              <span className="text-[rgb(var(--muted))]">Address:</span>{" "}
+              {shipping.address_line}
+            </div>
+            {shipping.delivery_note ? (
+              <div>
+                <span className="text-[rgb(var(--muted))]">Note:</span>{" "}
+                {shipping.delivery_note}
+              </div>
+            ) : null}
           </div>
         </div>
-      ) : (
-        <ShippingAddressForm
-          mode="edit"
+
+        <button
+          onClick={() => setEditMode(true)}
           disabled={loading || busy}
-          initialValues={initialValues}
-          onCancel={() => setEditMode(false)}
-          onSubmit={submitEdit}
-        />
-      )}
+          className="rounded-2xl border border-black/10 bg-[rgb(var(--surface))] px-4 py-2 text-sm font-semibold text-[rgb(var(--text))] hover:bg-black/5 disabled:opacity-40"
+        >
+          Edit
+        </button>
+      </div>
     </div>
   );
 }

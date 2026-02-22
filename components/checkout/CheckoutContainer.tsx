@@ -41,23 +41,34 @@ export default function CheckoutContainer({ sessionId }: { sessionId: string }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, sessionId]);
 
-  const headerText = useMemo(() => {
-    if (!sessionId) return "Missing session_id in URL";
-    return sessionId;
+  const headerSubtitle = useMemo(() => {
+    if (!sessionId) return "Missing checkout session.";
+    return "Complete shipping details to review your order.";
   }, [sessionId]);
 
   if (!user) {
     return (
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-semibold text-gray-900">Checkout</h1>
-          <p className="mt-2 text-sm text-gray-600">Please login first to continue.</p>
-          <div className="mt-6">
+      <main className="mx-auto max-w-5xl px-6 py-2">
+        <div className="rounded-3xl border border-black/10 bg-[rgb(var(--surface))] p-8 shadow-sm">
+          <div className="font-display text-2xl font-semibold text-[rgb(var(--text))]">
+            Checkout
+          </div>
+          <p className="mt-2 text-sm text-[rgb(var(--muted))]">
+            Please login first to continue.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-2">
             <button
               onClick={() => router.push("/")}
-              className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white"
+              className="inline-flex rounded-full border border-black/10 bg-white px-5 py-2.5 text-sm font-medium text-[rgb(var(--text))] hover:bg-black/5"
             >
               Continue shopping
+            </button>
+            <button
+              onClick={() => router.push("/cart")}
+              className="inline-flex rounded-full border border-black/10 bg-[rgb(var(--surface))] px-5 py-2.5 text-sm font-medium text-[rgb(var(--text))] hover:bg-black/5"
+            >
+              Back to cart
             </button>
           </div>
         </div>
@@ -66,107 +77,136 @@ export default function CheckoutContainer({ sessionId }: { sessionId: string }) 
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <div className="rounded-2xl border bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Checkout</h1>
-            <p className="mt-1 text-sm text-gray-600">Session ID</p>
-            <div className="mt-2 font-mono text-sm text-gray-800 break-all">{headerText}</div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.push("/cart")}
-              className="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900"
-            >
-              Back to cart
-            </button>
-
-            <button
-              onClick={() => router.push("/")}
-              className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white"
-            >
-              Continue shopping
-            </button>
-          </div>
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-[rgb(var(--text))]">
+            Checkout
+          </h1>
+          <p className="mt-1 text-sm text-[rgb(var(--muted))]">{headerSubtitle}</p>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl border bg-gray-50 p-5">
-              <div className="text-sm font-semibold text-gray-900">Shipping</div>
-              <div className="mt-2 text-sm text-gray-600">
-                Add shipping details to enable review. (Latitude/Longitude skipped for now.)
-              </div>
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <button
+            onClick={() => router.push("/cart")}
+            className="rounded-full border border-black/10 bg-[rgb(var(--surface))] px-4 py-2 text-sm font-medium text-[rgb(var(--text))] hover:bg-black/5"
+          >
+            Back to cart
+          </button>
 
-              <div className="mt-4">
-                <ShippingAddressSection
-                  sessionId={sessionId}
-                  loading={loading}
-                  details={details}
-                  onChanged={refresh}
-                />
+          <button
+            onClick={() => router.push("/")}
+            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-[rgb(var(--text))] hover:bg-black/5"
+          >
+            Continue shopping
+          </button>
+
+          <button
+            onClick={refresh}
+            disabled={loading || !sessionId}
+            className="rounded-full px-4 py-2 text-sm font-semibold text-white bg-[rgb(var(--brand-strong))] hover:opacity-95 disabled:opacity-40"
+          >
+            {loading ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Left */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Shipping */}
+          <section className="rounded-3xl border border-black/10 bg-[rgb(var(--surface))] p-6 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="font-display text-lg font-semibold text-[rgb(var(--text))]">
+                  Shipping address
+                </div>
+                <div className="mt-1 text-sm text-[rgb(var(--muted))]">
+                  Add or edit shipping details to enable order review.
+                </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border p-5">
-              <div className="text-sm font-semibold text-gray-900">Items</div>
-              <div className="mt-2 text-sm text-gray-600">
-                Grouped hierarchy: seller → category → product → variants.
-              </div>
-
-              {loading ? (
-                <div className="mt-4 text-sm text-gray-500">Loading checkout details…</div>
-              ) : !details ? (
-                <div className="mt-4 text-sm text-gray-600">No checkout data loaded.</div>
-              ) : (
-                <div className="mt-4">
-                  <CheckoutItemsHierarchy
-                    validItems={details.valid_items || []}
-                    invalidItems={details.invalid_items || []}
-                  />
-                </div>
-              )}
+            <div className="mt-5">
+              <ShippingAddressSection
+                sessionId={sessionId}
+                loading={loading}
+                details={details}
+                onChanged={refresh}
+              />
             </div>
-          </div>
+          </section>
 
-          <div className="space-y-4">
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
-              <div className="text-sm font-semibold text-gray-900">Session summary</div>
-
-              {loading ? (
-                <div className="mt-3 text-sm text-gray-500">Loading…</div>
-              ) : details ? (
-                <div className="mt-3">
-                  <CheckoutSessionMeta session={details.checkout_session} />
-                </div>
-              ) : (
-                <div className="mt-3 text-sm text-gray-600">No session loaded.</div>
-              )}
-
-              <button
-                onClick={() => router.push(`/checkout/review?session_id=${sessionId}`)}
-                disabled={!canReview || loading || !details}
-                className="mt-5 w-full rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:bg-gray-300"
-              >
-                Review order
-              </button>
-
-              {!canReview && details ? (
-                <div className="mt-2 text-xs text-gray-500">
-                  Add shipping address to enable review.
+          {/* Items */}
+          <section className="rounded-3xl border border-black/10 bg-[rgb(var(--surface))] p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="font-display text-lg font-semibold text-[rgb(var(--text))]">
+                Items
+              </div>
+              {details?.valid_items?.length ? (
+                <div className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-[rgb(var(--muted))]">
+                  {details.valid_items.length} items
                 </div>
               ) : null}
             </div>
 
+            {loading ? (
+              <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4 text-sm text-[rgb(var(--muted))]">
+                Loading checkout details…
+              </div>
+            ) : !details ? (
+              <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4 text-sm text-[rgb(var(--muted))]">
+                No checkout data loaded.
+              </div>
+            ) : (
+              <div className="mt-5">
+                <CheckoutItemsHierarchy
+                  validItems={details.valid_items || []}
+                  invalidItems={details.invalid_items || []}
+                />
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* Right */}
+        <div className="lg:sticky lg:top-32 h-fit">
+          <div className="rounded-3xl border border-black/10 bg-[rgb(var(--surface))] p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="font-display text-lg font-semibold text-[rgb(var(--text))]">
+                Summary
+              </div>
+              {details?.checkout_session?.status ? (
+                <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-[rgb(var(--muted))]">
+                  {details.checkout_session.status}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4">
+              {loading ? (
+                <div className="text-sm text-[rgb(var(--muted))]">Loading…</div>
+              ) : details ? (
+                <CheckoutSessionMeta session={details.checkout_session} />
+              ) : (
+                <div className="text-sm text-[rgb(var(--muted))]">No session loaded.</div>
+              )}
+            </div>
+
             <button
-              onClick={refresh}
-              disabled={loading || !sessionId}
-              className="w-full rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:opacity-40"
+              onClick={() => router.push(`/checkout/review?session_id=${sessionId}`)}
+              disabled={!canReview || loading || !details}
+              className="mt-5 w-full rounded-2xl bg-[rgb(var(--brand-strong))] px-4 py-3 text-sm font-semibold text-white hover:opacity-95 disabled:opacity-40"
             >
-              Refresh
+              Review order
             </button>
+
+            {!canReview && details ? (
+              <div className="mt-2 text-xs text-[rgb(var(--muted))]">
+                Add shipping address to enable review.
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

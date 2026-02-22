@@ -1,61 +1,17 @@
-// // components/checkout/CheckoutSessionMeta.tsx
-// "use client";
-
-// import type { CheckoutSession } from "./types";
-
-// export default function CheckoutSessionMeta({ session }: { session: CheckoutSession }) {
-//   return (
-//     <div className="space-y-2 text-sm">
-//       <div className="flex justify-between gap-4">
-//         <span className="text-gray-600">Status</span>
-//         <span className="font-medium text-gray-900">{session.status}</span>
-//       </div>
-
-//       <div className="flex justify-between gap-4">
-//         <span className="text-gray-600">Subtotal</span>
-//         <span className="font-medium text-gray-900">৳{session.subtotal}</span>
-//       </div>
-
-//       <div className="flex justify-between gap-4">
-//         <span className="text-gray-600">Delivery</span>
-//         <span className="font-medium text-gray-900">
-//           {session.delivery_charge ? `৳${session.delivery_charge}` : "—"}
-//         </span>
-//       </div>
-
-//       <div className="flex justify-between gap-4">
-//         <span className="text-gray-600">Total payable</span>
-//         <span className="text-lg font-semibold text-gray-900">৳{session.total_payable}</span>
-//       </div>
-
-//       <div className="flex justify-between gap-4">
-//         <span className="text-gray-600">Payment method</span>
-//         <span className="font-medium text-gray-900">{session.payment_method}</span>
-//       </div>
-
-//       <div className="flex justify-between gap-4">
-//         <span className="text-gray-600">Weight</span>
-//         <span className="font-medium text-gray-900">{session.total_weight_grams}g</span>
-//       </div>
-
-//       {session.is_platform_discount_applied ? (
-//         <div className="mt-3 rounded-xl border bg-gray-50 p-3">
-//           <div className="text-xs font-semibold text-gray-800">Platform discount</div>
-//           <div className="mt-1 text-xs text-gray-700">
-//             Type: {session.platform_discount_type ?? "—"} • Value:{" "}
-//             {session.platform_discount_value ?? "—"} • Applied:{" "}
-//             {session.platform_discount_amount_applied ?? "—"}
-//           </div>
-//         </div>
-//       ) : null}
-//     </div>
-//   );
-// }
-
 // components/checkout/CheckoutSessionMeta.tsx
 "use client";
 
 import type { CheckoutSession } from "./types";
+
+function money(x: any) {
+  const n = Number.parseFloat(String(x ?? "0"));
+  const safe = Number.isFinite(n) ? n : 0;
+  return `৳${safe.toLocaleString("en-BD", { maximumFractionDigits: 2 })}`;
+}
+
+function prettyPayment(m: CheckoutSession["payment_method"]) {
+  return m === "cod" ? "Cash on delivery" : "Prepaid";
+}
 
 export default function CheckoutSessionMeta({ session }: { session: CheckoutSession }) {
   const dc = session.delivery_charge; // string | null
@@ -65,45 +21,48 @@ export default function CheckoutSessionMeta({ session }: { session: CheckoutSess
   const pdApplied = session.platform_discount_amount_applied;
 
   return (
-    <div className="space-y-2 text-sm">
-      <div className="flex justify-between gap-4">
-        <span className="text-gray-600">Status</span>
-        <span className="font-medium text-gray-900">{session.status}</span>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-sm text-[rgb(var(--muted))]">Subtotal</span>
+        <span className="text-sm font-semibold text-[rgb(var(--text))]">
+          {money(session.subtotal)}
+        </span>
       </div>
 
-      <div className="flex justify-between gap-4">
-        <span className="text-gray-600">Subtotal</span>
-        <span className="font-medium text-gray-900">৳{session.subtotal}</span>
-      </div>
-
-      <div className="flex justify-between gap-4">
-        <span className="text-gray-600">Delivery</span>
-        <span className="font-medium text-gray-900">{dc ? `৳${dc}` : "—"}</span>
-      </div>
-
-      <div className="flex justify-between gap-4">
-        <span className="text-gray-600">Total payable</span>
-        <span className="text-lg font-semibold text-gray-900">৳{session.total_payable}</span>
-      </div>
-
-      <div className="flex justify-between gap-4">
-        <span className="text-gray-600">Payment method</span>
-        <span className="font-medium text-gray-900">{session.payment_method}</span>
-      </div>
-
-      <div className="flex justify-between gap-4">
-        <span className="text-gray-600">Weight</span>
-        <span className="font-medium text-gray-900">{session.total_weight_grams}g</span>
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-sm text-[rgb(var(--muted))]">Delivery</span>
+        <span className="text-sm font-semibold text-[rgb(var(--text))]">
+          {dc ? money(dc) : "—"}
+        </span>
       </div>
 
       {session.is_platform_discount_applied ? (
-        <div className="mt-3 rounded-xl border bg-gray-50 p-3">
-          <div className="text-xs font-semibold text-gray-800">Platform discount</div>
-          <div className="mt-1 text-xs text-gray-700">
-            Type: {pdType ?? "—"} • Value: {pdVal ?? "—"} • Applied: {pdApplied ?? "—"}
+        <div className="rounded-2xl border border-black/10 bg-[rgb(var(--brand))]/[0.06] p-3">
+          <div className="text-xs font-semibold text-[rgb(var(--text))]">
+            Platform discount applied
+          </div>
+          <div className="mt-1 text-xs text-[rgb(var(--muted))]">
+            {pdType ? `Type: ${pdType}` : "Type: —"}
+            {pdVal ? ` • Value: ${pdVal}` : ""}
+            {pdApplied ? ` • Applied: ${pdApplied}` : ""}
           </div>
         </div>
       ) : null}
+
+      <div className="pt-2 border-t border-black/10">
+        <div className="flex items-baseline justify-between gap-4">
+          <span className="text-sm text-[rgb(var(--muted))]">Total payable</span>
+          <span className="font-display text-2xl font-semibold text-[rgb(var(--text))]">
+            {money(session.total_payable)}
+          </span>
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-4">
+          <span className="text-sm text-[rgb(var(--muted))]">Payment method</span>
+          <span className="text-sm font-semibold text-[rgb(var(--text))]">
+            {prettyPayment(session.payment_method)}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

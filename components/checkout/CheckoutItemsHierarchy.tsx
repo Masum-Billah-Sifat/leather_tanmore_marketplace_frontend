@@ -21,6 +21,16 @@ type Grouped = {
   };
 };
 
+function money(x: any) {
+  const n = Number.parseFloat(String(x ?? "0"));
+  const safe = Number.isFinite(n) ? n : 0;
+  return `৳${safe.toLocaleString("en-BD", { maximumFractionDigits: 2 })}`;
+}
+
+function titleCase(s: string) {
+  return (s || "").replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
 export default function CheckoutItemsHierarchy({
   validItems,
   invalidItems,
@@ -57,69 +67,136 @@ export default function CheckoutItemsHierarchy({
   }, [validItems]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {validItems.length === 0 ? (
-        <div className="text-sm text-gray-600">No valid items found for this session.</div>
+        <div className="rounded-2xl border border-black/10 bg-white p-4 text-sm text-[rgb(var(--muted))]">
+          No valid items found for this session.
+        </div>
       ) : null}
 
       {Object.entries(grouped).map(([sellerId, seller]) => (
-        <div key={sellerId} className="rounded-2xl border overflow-hidden">
-          <div className="px-4 py-3 border-b bg-gray-50">
-            <div className="text-xs text-gray-600">Seller</div>
-            <div className="text-sm font-semibold text-gray-900">{seller.seller_store_name}</div>
+        <section
+          key={sellerId}
+          className="rounded-3xl border border-black/10 bg-white overflow-hidden"
+        >
+          <div className="px-5 py-4 border-b border-black/10 bg-black/[0.02]">
+            <div className="text-xs tracking-wide uppercase text-[rgb(var(--muted))]">
+              Seller
+            </div>
+            <div className="mt-1 font-display text-lg font-semibold text-[rgb(var(--text))]">
+              {seller.seller_store_name}
+            </div>
           </div>
 
-          <div className="p-4 space-y-4">
+          <div className="p-5 space-y-5">
             {Object.entries(seller.categories).map(([categoryName, cat]) => (
-              <div key={categoryName} className="rounded-2xl border">
-                <div className="px-4 py-3 border-b">
-                  <div className="text-xs text-gray-600">Category</div>
-                  <div className="text-sm font-semibold text-gray-900">{categoryName}</div>
+              <div key={categoryName} className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="inline-flex rounded-full border border-black/10 bg-[rgb(var(--brand))]/10 px-3 py-1 text-xs font-semibold text-[rgb(var(--brand-strong))]">
+                    {categoryName}
+                  </div>
                 </div>
 
-                <div className="p-4 space-y-4">
+                <div className="space-y-4">
                   {Object.entries(cat.products).map(([productId, p]) => (
-                    <div key={productId} className="rounded-2xl border">
-                      <div className="flex items-center gap-3 p-4 border-b bg-white">
-                        {p.product_primary_image_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={p.product_primary_image_url}
-                            alt={p.product_title}
-                            className="h-12 w-12 rounded-xl object-cover border"
-                          />
-                        ) : (
-                          <div className="h-12 w-12 rounded-xl bg-gray-200 border" />
-                        )}
+                    <div
+                      key={productId}
+                      className="rounded-3xl border border-black/10 overflow-hidden"
+                    >
+                      <div className="flex items-center gap-4 p-5 border-b border-black/10 bg-[rgb(var(--surface))]">
+                        <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-black/10 bg-black/5 flex-none">
+                          {p.product_primary_image_url ? (
+                            // keep <img> to avoid Next/Image domain config issues
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={p.product_primary_image_url}
+                              alt={p.product_title}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-[10px] text-[rgb(var(--muted))]">
+                              No image
+                            </div>
+                          )}
+                        </div>
 
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900">{p.product_title}</div>
-                          <div className="text-xs text-gray-600">Product ID: {productId.slice(0, 8)}…</div>
+                        <div className="min-w-0">
+                          <div className="truncate font-display text-base font-semibold text-[rgb(var(--text))]">
+                            {p.product_title}
+                          </div>
+                          <div className="mt-1 text-sm text-[rgb(var(--muted))]">
+                            {p.variants.length} variant{p.variants.length === 1 ? "" : "s"}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="p-4 space-y-3">
-                        {p.variants.map((v) => (
-                          <div key={v.variant_id} className="flex items-start justify-between gap-4 rounded-xl border p-3">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {v.color} / {v.size}
-                              </div>
-                              <div className="mt-1 text-xs text-gray-600 font-mono break-all">
-                                variant_id: {v.variant_id}
-                              </div>
-                              <div className="mt-1 text-sm text-gray-800">
-                                ৳{v.unit_price} × {v.required_quantity}
+                      <div className="p-5 space-y-3">
+                        {p.variants.map((v) => {
+                          const unit = Number.parseFloat(String(v.unit_price ?? "0")) || 0;
+                          const qty = Number(v.required_quantity ?? 0) || 0;
+                          const lineTotal = unit * qty;
+
+                          return (
+                            <div
+                              key={v.variant_id}
+                              className="rounded-2xl border border-black/10 bg-white p-4"
+                            >
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <div className="text-sm font-semibold text-[rgb(var(--text))]">
+                                      {v.color} / {v.size}
+                                    </div>
+
+                                    <span className="inline-flex rounded-full border border-black/10 bg-black/[0.03] px-2.5 py-1 text-xs font-semibold text-[rgb(var(--text))]">
+                                      {titleCase(v.buying_mode)}
+                                    </span>
+
+                                    {v.has_discount ? (
+                                      <span className="inline-flex rounded-full border border-black/10 bg-[rgb(var(--brand))]/10 px-2.5 py-1 text-xs font-semibold text-[rgb(var(--brand-strong))]">
+                                        Discount
+                                      </span>
+                                    ) : null}
+                                  </div>
+
+                                  {v.has_discount ? (
+                                    <div className="mt-1 text-xs text-[rgb(var(--muted))]">
+                                      {v.discount_type ? `${v.discount_type}` : "discount"}{" "}
+                                      {v.discount_value ? `• ${v.discount_value}` : ""}
+                                    </div>
+                                  ) : null}
+
+                                  <div className="mt-2 flex flex-wrap items-baseline gap-2 text-sm">
+                                    <div className="text-[rgb(var(--muted))]">
+                                      Qty{" "}
+                                      <span className="font-semibold text-[rgb(var(--text))]">
+                                        {qty}
+                                      </span>
+                                    </div>
+
+                                    <div className="text-[rgb(var(--muted))]">•</div>
+
+                                    <div className="text-[rgb(var(--muted))]">
+                                      Unit{" "}
+                                      <span className="font-semibold text-[rgb(var(--text))]">
+                                        {money(unit)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="text-right">
+                                  <div className="text-xs text-[rgb(var(--muted))]">
+                                    Line total
+                                  </div>
+                                  <div className="font-display text-lg font-semibold text-[rgb(var(--text))]">
+                                    {money(lineTotal)}
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-xs text-gray-600">Weight</div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {v.weight_grams}g
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -127,17 +204,26 @@ export default function CheckoutItemsHierarchy({
               </div>
             ))}
           </div>
-        </div>
+        </section>
       ))}
 
       {invalidItems?.length ? (
-        <div className="rounded-2xl border bg-gray-50 p-4">
-          <div className="text-sm font-semibold text-gray-900">Invalid items</div>
-          <div className="mt-2 space-y-1">
+        <div className="rounded-3xl border border-black/10 bg-[rgb(var(--surface))] p-6">
+          <div className="font-display text-lg font-semibold text-[rgb(var(--text))]">
+            Skipped items
+          </div>
+          <div className="mt-1 text-sm text-[rgb(var(--muted))]">
+            These items could not be included in checkout.
+          </div>
+
+          <div className="mt-4 space-y-2">
             {invalidItems.map((x) => (
-              <div key={x.variant_id} className="text-sm text-gray-700">
-                <span className="font-mono">{x.variant_id.slice(0, 8)}…</span>{" "}
-                <span className="text-gray-500">— {x.failure_reason}</span>
+              <div
+                key={x.variant_id}
+                className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm"
+              >
+                <div className="font-semibold text-[rgb(var(--text))]">Item</div>
+                <div className="mt-1 text-[rgb(var(--muted))]">{x.failure_reason}</div>
               </div>
             ))}
           </div>

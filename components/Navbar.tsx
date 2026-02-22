@@ -1,6 +1,7 @@
+// components/Navbar.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { GoogleLogin } from "@react-oauth/google";
@@ -25,6 +26,15 @@ export default function Navbar() {
 
   const [sellerModalOpen, setSellerModalOpen] = useState(false);
   const cart = useCartStore();
+
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleLoginSuccess = async (credentialResponse: any) => {
     try {
@@ -95,44 +105,64 @@ export default function Navbar() {
   };
 
   return (
-    <header className="w-full border-b bg-white shadow-sm">
-      <div className="mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
+    <header
+      className={[
+        "sticky top-0 z-50 h-16 w-full border-b transition",
+        scrolled
+          ? "border-black/10 bg-[rgb(var(--surface))] shadow-sm"
+          : "border-black/5 bg-[rgb(var(--surface))]/70 backdrop-blur supports-[backdrop-filter]:bg-[rgb(var(--surface))]/60",
+      ].join(" ")}
+    >
+      <div className="mx-auto max-w-7xl px-6 h-16 flex justify-between items-center">
         <button
           onClick={() => router.push("/")}
-          className="text-2xl font-semibold text-gray-800"
+          className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-[rgb(var(--text))]"
         >
           TANMORE
         </button>
 
-        <nav className="flex items-center gap-6 text-gray-600">
-          {/* ✅ Always visible cart button */}
+        <nav className="flex items-center gap-3 text-[rgb(var(--muted))]">
           <button
             onClick={handleCartClick}
-            className="text-sm font-medium text-gray-800 hover:underline"
+            className="
+              rounded-full px-3 py-1.5 text-sm font-medium
+              text-[rgb(var(--text))]
+              hover:bg-black/5
+            "
           >
             Cart
           </button>
 
           {!hydrated ? (
-            <span className="text-sm text-gray-400">Loading...</span>
+            <span className="text-sm text-[rgb(var(--muted))]">Loading...</span>
           ) : user ? (
             <>
-              <span className="text-sm text-gray-500">{user.email}</span>
-              <span className="text-sm text-gray-500 capitalize">
+              <span className="hidden md:inline text-sm text-[rgb(var(--muted))]">
+                {user.email}
+              </span>
+              <span className="hidden sm:inline text-sm text-[rgb(var(--muted))] capitalize">
                 {user.mode}
               </span>
 
               {user.is_seller_profile_approved ? (
                 <button
                   onClick={handleSwitchMode}
-                  className="text-sm text-blue-600 hover:underline"
+                  className="
+                    rounded-full px-3 py-1.5 text-sm font-medium
+                    text-[rgb(var(--brand))]
+                    hover:bg-[rgb(var(--brand))]/10
+                  "
                 >
                   Switch Mode
                 </button>
               ) : (
                 <button
                   onClick={openSellerModal}
-                  className="text-sm text-green-600 hover:underline"
+                  className="
+                    rounded-full px-3 py-1.5 text-sm font-medium
+                    text-[rgb(var(--brand))]
+                    hover:bg-[rgb(var(--brand))]/10
+                  "
                 >
                   Become a Seller
                 </button>
@@ -140,7 +170,10 @@ export default function Navbar() {
 
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-500 hover:underline"
+                className="
+                  rounded-full px-3 py-1.5 text-sm font-medium
+                  text-red-600 hover:bg-red-600/10
+                "
               >
                 Logout
               </button>
@@ -149,15 +182,21 @@ export default function Navbar() {
             <>
               <button
                 onClick={openSellerModal}
-                className="text-sm text-green-600 hover:underline"
+                className="
+                  rounded-full px-3 py-1.5 text-sm font-medium
+                  text-[rgb(var(--brand))]
+                  hover:bg-[rgb(var(--brand))]/10
+                "
               >
                 Become a Seller
               </button>
 
-              <GoogleLogin
-                onSuccess={handleLoginSuccess}
-                onError={() => alert("Login Error")}
-              />
+              <div className="rounded-xl overflow-hidden border border-black/10 bg-white">
+                <GoogleLogin
+                  onSuccess={handleLoginSuccess}
+                  onError={() => alert("Login Error")}
+                />
+              </div>
             </>
           )}
         </nav>

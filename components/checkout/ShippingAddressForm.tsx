@@ -29,6 +29,12 @@ const DEFAULTS: ShippingFormValues = {
   payment_method: "cod",
 };
 
+const inputBase =
+  "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-[rgb(var(--text))] " +
+  "placeholder:text-[rgb(var(--muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--brand))]/30";
+
+const labelBase = "text-xs font-semibold text-[rgb(var(--muted))]";
+
 export default function ShippingAddressForm({
   mode,
   disabled,
@@ -51,9 +57,6 @@ export default function ShippingAddressForm({
   }, [initialValues, mode]);
 
   const requiredOk = useMemo(() => {
-    // for add: strict required fields
-    // for edit: we still require the core fields, because you said “show all fields and allow edit”
-    // (you can loosen later; backend supports partial updates anyway)
     return (
       vals.recipient_name.trim().length > 0 &&
       vals.recipient_phone.trim().length > 0 &&
@@ -76,25 +79,29 @@ export default function ShippingAddressForm({
   };
 
   return (
-    <div className="rounded-2xl border bg-white p-4">
-      <div className="text-sm font-semibold text-gray-900">
-        {mode === "add" ? "Add shipping address" : "Edit shipping address"}
-      </div>
+    <div className="rounded-3xl border border-black/10 bg-white p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-display text-base font-semibold text-[rgb(var(--text))]">
+            {mode === "add" ? "Add shipping address" : "Edit shipping address"}
+          </div>
+          <div className="mt-1 text-sm text-[rgb(var(--muted))]">
+            Required: name, phone, address, city/zone/area, payment method.
+          </div>
+        </div>
 
-      <div className="mt-2 text-xs text-gray-600">
-        Required: name, phone, address_line, city_id, zone_id, area_id, payment_method. Optional: email, delivery_note.
-        <div className="mt-1">
-          For now, enter any number 1–100 for city/zone/area (temporary).
+        <div className="rounded-full border border-black/10 bg-[rgb(var(--surface))] px-3 py-1 text-xs font-semibold text-[rgb(var(--muted))]">
+          {mode === "add" ? "New" : "Edit"}
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field label="Recipient name *">
           <input
             value={vals.recipient_name}
             onChange={(e) => setField("recipient_name", e.target.value)}
             disabled={disabled}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
+            className={inputBase}
             placeholder="e.g., BPS"
           />
         </Field>
@@ -104,7 +111,7 @@ export default function ShippingAddressForm({
             value={vals.recipient_phone}
             onChange={(e) => setField("recipient_phone", e.target.value)}
             disabled={disabled}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
+            className={inputBase}
             placeholder="e.g., 01XXXXXXXXX"
           />
         </Field>
@@ -114,7 +121,7 @@ export default function ShippingAddressForm({
             value={vals.recipient_email}
             onChange={(e) => setField("recipient_email", e.target.value)}
             disabled={disabled}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
+            className={inputBase}
             placeholder="optional"
           />
         </Field>
@@ -124,10 +131,10 @@ export default function ShippingAddressForm({
             value={vals.payment_method}
             onChange={(e) => setField("payment_method", e.target.value as any)}
             disabled={disabled}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
+            className={inputBase}
           >
-            <option value="cod">cod</option>
-            <option value="prepaid">prepaid</option>
+            <option value="cod">Cash on delivery</option>
+            <option value="prepaid">Prepaid</option>
           </select>
         </Field>
 
@@ -137,7 +144,7 @@ export default function ShippingAddressForm({
               value={vals.address_line}
               onChange={(e) => setField("address_line", e.target.value)}
               disabled={disabled}
-              className="w-full rounded-xl border px-3 py-2 text-sm"
+              className={inputBase}
               placeholder="House/Road/Area details"
               rows={3}
             />
@@ -150,7 +157,7 @@ export default function ShippingAddressForm({
               value={vals.delivery_note}
               onChange={(e) => setField("delivery_note", e.target.value)}
               disabled={disabled}
-              className="w-full rounded-xl border px-3 py-2 text-sm"
+              className={inputBase}
               placeholder="optional"
             />
           </Field>
@@ -164,7 +171,7 @@ export default function ShippingAddressForm({
             value={vals.city_id}
             onChange={(e) => setField("city_id", Number(e.target.value))}
             disabled={disabled}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
+            className={inputBase}
           />
         </Field>
 
@@ -176,7 +183,7 @@ export default function ShippingAddressForm({
             value={vals.zone_id}
             onChange={(e) => setField("zone_id", Number(e.target.value))}
             disabled={disabled}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
+            className={inputBase}
           />
         </Field>
 
@@ -188,18 +195,18 @@ export default function ShippingAddressForm({
             value={vals.area_id}
             onChange={(e) => setField("area_id", Number(e.target.value))}
             disabled={disabled}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
+            className={inputBase}
           />
         </Field>
       </div>
 
-      <div className="mt-4 flex items-center justify-end gap-2">
+      <div className="mt-5 flex items-center justify-end gap-2">
         {mode === "edit" ? (
           <button
             type="button"
             onClick={onCancel}
             disabled={disabled}
-            className="rounded-xl border px-4 py-2 text-sm font-medium text-gray-900 disabled:opacity-40"
+            className="rounded-2xl border border-black/10 bg-[rgb(var(--surface))] px-4 py-2 text-sm font-semibold text-[rgb(var(--text))] hover:bg-black/5 disabled:opacity-40"
           >
             Cancel
           </button>
@@ -209,19 +216,25 @@ export default function ShippingAddressForm({
           type="button"
           onClick={submit}
           disabled={disabled || !requiredOk || (mode === "edit" && !touched)}
-          className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:bg-gray-300"
+          className="rounded-2xl bg-[rgb(var(--brand-strong))] px-4 py-2 text-sm font-semibold text-white hover:opacity-95 disabled:opacity-40"
         >
           {mode === "add" ? "Add shipping" : "Save changes"}
         </button>
       </div>
+
+      {!requiredOk ? (
+        <div className="mt-3 text-xs text-[rgb(var(--muted))]">
+          Fill in all required fields to continue.
+        </div>
+      ) : null}
     </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1">
-      <div className="text-xs font-medium text-gray-700">{label}</div>
+    <div className="space-y-1.5">
+      <div className={labelBase}>{label}</div>
       {children}
     </div>
   );

@@ -1,32 +1,35 @@
 // app/layout.tsx
-import './globals.css'
-import { Poppins } from 'next/font/google'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import type { Metadata } from 'next'
-import Providers from './providers'
+import "./globals.css";
+import { Nunito } from "next/font/google";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import CategoryNav from "@/components/categories/CategoryNav";
+import type { Metadata } from "next";
+import Providers from "./providers";
 
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  display: 'swap',
-})
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
-  title: 'TANMORE',
-  description: 'Modern ecommerce site built with Next.js',
-}
+  title: "TANMORE",
+  description: "Modern ecommerce site built with Next.js",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={poppins.className}>
+      <body className={`${nunito.variable} antialiased`}>
         <Providers>
           <Navbar />
-          <main className="min-h-screen px-6 py-8">{children}</main>
+          <CategoryNav />
+          <main className="min-h-screen px-6">{children}</main>
           <Footer />
         </Providers>
       </body>
     </html>
-  )
+  );
 }

@@ -1,6 +1,7 @@
+// // components/catalog/VariantSelector.tsx
 // "use client";
 
-// import { useMemo, useState } from "react";
+// import { useEffect, useMemo, useState } from "react";
 
 // export type Variant = {
 //   variant_id: string;
@@ -10,9 +11,17 @@
 //   has_retail_discount?: boolean;
 //   retail_discount?: number | null;
 //   retail_discount_type?: "flat" | "percentage" | null;
+
 //   wholesale_enabled?: boolean;
 //   wholesale_price?: number | null;
+
+//   // backend might send either naming; we keep both optional for UI display
 //   wholesale_min_quantity?: number | null;
+//   wholesale_min_qty?: number | null;
+
+//   wholesale_discount?: number | null;
+//   wholesale_discount_type?: "flat" | "percentage" | null;
+
 //   weight_grams: number;
 //   in_stock?: boolean;
 //   stock_amount?: number;
@@ -45,8 +54,7 @@
 //     return variants.find((v) => v.color === selectedColor && v.size === selectedSize) ?? null;
 //   }, [variants, selectedColor, selectedSize]);
 
-//   // whenever selection changes, emit variant
-//   useMemo(() => {
+//   useEffect(() => {
 //     onChange(matchingVariant);
 //   }, [matchingVariant, onChange]);
 
@@ -60,14 +68,23 @@
 //     return variants.some((v) => v.size === selectedSize && v.color === color);
 //   };
 
+//   const chipBase =
+//     "rounded-full border px-3 py-2 text-sm font-medium transition";
+//   const chipActive =
+//     "bg-[rgb(var(--brand))]/10 border-[rgb(var(--brand))]/30 text-[rgb(var(--brand-strong))]";
+//   const chipIdle =
+//     "border-black/10 text-[rgb(var(--text))] hover:bg-black/5";
+//   const chipDisabled = "opacity-40 cursor-not-allowed";
+
 //   return (
 //     <div className="space-y-4">
 //       <div>
-//         <div className="text-sm font-medium text-gray-800">Color</div>
+//         <div className="text-sm font-semibold text-[rgb(var(--text))]">Color</div>
 //         <div className="mt-2 flex flex-wrap gap-2">
 //           {colors.map((c) => {
 //             const enabled = colorEnabled(c);
 //             const active = selectedColor === c;
+
 //             return (
 //               <button
 //                 key={c}
@@ -75,9 +92,9 @@
 //                 onClick={() => setSelectedColor(active ? null : c)}
 //                 disabled={!enabled}
 //                 className={[
-//                   "rounded-xl border px-3 py-2 text-sm",
-//                   active ? "border-black text-gray-900" : "text-gray-700",
-//                   !enabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-50",
+//                   chipBase,
+//                   active ? chipActive : chipIdle,
+//                   !enabled ? chipDisabled : "",
 //                 ].join(" ")}
 //               >
 //                 {c}
@@ -88,11 +105,12 @@
 //       </div>
 
 //       <div>
-//         <div className="text-sm font-medium text-gray-800">Size</div>
+//         <div className="text-sm font-semibold text-[rgb(var(--text))]">Size</div>
 //         <div className="mt-2 flex flex-wrap gap-2">
 //           {sizes.map((s) => {
 //             const enabled = sizeEnabled(s);
 //             const active = selectedSize === s;
+
 //             return (
 //               <button
 //                 key={s}
@@ -100,9 +118,9 @@
 //                 onClick={() => setSelectedSize(active ? null : s)}
 //                 disabled={!enabled}
 //                 className={[
-//                   "rounded-xl border px-3 py-2 text-sm",
-//                   active ? "border-black text-gray-900" : "text-gray-700",
-//                   !enabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-50",
+//                   chipBase,
+//                   active ? chipActive : chipIdle,
+//                   !enabled ? chipDisabled : "",
 //                 ].join(" ")}
 //               >
 //                 {s}
@@ -113,13 +131,14 @@
 //       </div>
 
 //       {!selectedColor || !selectedSize ? (
-//         <div className="text-sm text-gray-500">
+//         <div className="text-sm text-[rgb(var(--muted))]">
 //           Select a color and a size to continue.
 //         </div>
 //       ) : matchingVariant ? (
-//         <div className="text-sm text-gray-700">
-//           Selected: <span className="font-medium">{matchingVariant.color}</span> /{" "}
-//           <span className="font-medium">{matchingVariant.size}</span>
+//         <div className="text-sm text-[rgb(var(--text))]">
+//           Selected:{" "}
+//           <span className="font-semibold">{matchingVariant.color}</span> /{" "}
+//           <span className="font-semibold">{matchingVariant.size}</span>
 //         </div>
 //       ) : (
 //         <div className="text-sm text-red-600">No matching variant found.</div>
@@ -128,6 +147,8 @@
 //   );
 // }
 
+
+// components/catalog/VariantSelector.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -140,9 +161,16 @@ export type Variant = {
   has_retail_discount?: boolean;
   retail_discount?: number | null;
   retail_discount_type?: "flat" | "percentage" | null;
+
   wholesale_enabled?: boolean;
   wholesale_price?: number | null;
+
   wholesale_min_quantity?: number | null;
+  wholesale_min_qty?: number | null;
+
+  wholesale_discount?: number | null;
+  wholesale_discount_type?: "flat" | "percentage" | null;
+
   weight_grams: number;
   in_stock?: boolean;
   stock_amount?: number;
@@ -175,7 +203,6 @@ export default function VariantSelector({ variants, onChange }: Props) {
     return variants.find((v) => v.color === selectedColor && v.size === selectedSize) ?? null;
   }, [variants, selectedColor, selectedSize]);
 
-  // ✅ side-effect belongs in useEffect
   useEffect(() => {
     onChange(matchingVariant);
   }, [matchingVariant, onChange]);
@@ -190,14 +217,24 @@ export default function VariantSelector({ variants, onChange }: Props) {
     return variants.some((v) => v.size === selectedSize && v.color === color);
   };
 
+  const chipBase =
+    "rounded-full border px-3.5 py-2 text-sm font-semibold transition " +
+    "focus:outline-none focus:ring-2 focus:ring-[rgb(var(--brand))]/25";
+  const chipActive =
+    "bg-[rgb(var(--brand))]/10 border-[rgb(var(--brand))]/35 text-[rgb(var(--brand-strong))]";
+  const chipIdle =
+    "border-black/10 text-[rgb(var(--text))] bg-white hover:bg-black/5";
+  const chipDisabled = "opacity-40 cursor-not-allowed";
+
   return (
     <div className="space-y-4">
       <div>
-        <div className="text-sm font-medium text-gray-800">Color</div>
+        <div className="text-sm font-semibold text-[rgb(var(--text))]">Color</div>
         <div className="mt-2 flex flex-wrap gap-2">
           {colors.map((c) => {
             const enabled = colorEnabled(c);
             const active = selectedColor === c;
+
             return (
               <button
                 key={c}
@@ -205,9 +242,9 @@ export default function VariantSelector({ variants, onChange }: Props) {
                 onClick={() => setSelectedColor(active ? null : c)}
                 disabled={!enabled}
                 className={[
-                  "rounded-xl border px-3 py-2 text-sm",
-                  active ? "border-black text-gray-900" : "text-gray-700",
-                  !enabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-50",
+                  chipBase,
+                  active ? chipActive : chipIdle,
+                  !enabled ? chipDisabled : "",
                 ].join(" ")}
               >
                 {c}
@@ -218,11 +255,12 @@ export default function VariantSelector({ variants, onChange }: Props) {
       </div>
 
       <div>
-        <div className="text-sm font-medium text-gray-800">Size</div>
+        <div className="text-sm font-semibold text-[rgb(var(--text))]">Size</div>
         <div className="mt-2 flex flex-wrap gap-2">
           {sizes.map((s) => {
             const enabled = sizeEnabled(s);
             const active = selectedSize === s;
+
             return (
               <button
                 key={s}
@@ -230,9 +268,9 @@ export default function VariantSelector({ variants, onChange }: Props) {
                 onClick={() => setSelectedSize(active ? null : s)}
                 disabled={!enabled}
                 className={[
-                  "rounded-xl border px-3 py-2 text-sm",
-                  active ? "border-black text-gray-900" : "text-gray-700",
-                  !enabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-50",
+                  chipBase,
+                  active ? chipActive : chipIdle,
+                  !enabled ? chipDisabled : "",
                 ].join(" ")}
               >
                 {s}
@@ -243,11 +281,22 @@ export default function VariantSelector({ variants, onChange }: Props) {
       </div>
 
       {!selectedColor || !selectedSize ? (
-        <div className="text-sm text-gray-500">Select a color and a size to continue.</div>
+        <div className="text-sm text-[rgb(var(--muted))]">
+          Select a color and a size to continue.
+        </div>
       ) : matchingVariant ? (
-        <div className="text-sm text-gray-700">
-          Selected: <span className="font-medium">{matchingVariant.color}</span> /{" "}
-          <span className="font-medium">{matchingVariant.size}</span>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <div className="text-[rgb(var(--text))]">
+            Selected:{" "}
+            <span className="font-semibold">{matchingVariant.color}</span> /{" "}
+            <span className="font-semibold">{matchingVariant.size}</span>
+          </div>
+
+          {matchingVariant.in_stock === false ? (
+            <span className="inline-flex rounded-full border border-black/10 bg-black/[0.03] px-2.5 py-1 text-xs font-semibold text-[rgb(var(--muted))]">
+              Out of stock
+            </span>
+          ) : null}
         </div>
       ) : (
         <div className="text-sm text-red-600">No matching variant found.</div>
